@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { User, Lock, Mail, FileText, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
-import { addNewAuthor } from '../data/authors';
-import { User as UserType } from '../types';
+import { User, Lock, Mail, FileText, ArrowLeft, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface AuthorRegistrationProps {
   onBack: () => void;
@@ -9,6 +8,7 @@ interface AuthorRegistrationProps {
 }
 
 const AuthorRegistration: React.FC<AuthorRegistrationProps> = ({ onBack, onLoginSuccess }) => {
+  const { login, register, loading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
@@ -20,7 +20,6 @@ const AuthorRegistration: React.FC<AuthorRegistrationProps> = ({ onBack, onLogin
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -33,21 +32,21 @@ const AuthorRegistration: React.FC<AuthorRegistrationProps> = ({ onBack, onLogin
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+
+    if (!formData.email || !formData.password) {
+      setError('Сва поља су обавезна');
+      return;
+    }
 
     try {
-      // Simulacija prijave - u stvarnoj aplikaciji bi se pozivao API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (formData.email === 'djoricnenad@gmail.com' && formData.password === '1Flasicradule!') {
+      const success = await login(formData.email, formData.password);
+      if (success) {
         onLoginSuccess();
       } else {
         setError('Неисправна е-адреса или лозинка');
       }
     } catch (err) {
       setError('Грешка при пријављивању. Покушајте поново.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -55,66 +54,55 @@ const AuthorRegistration: React.FC<AuthorRegistrationProps> = ({ onBack, onLogin
     e.preventDefault();
     setError('');
     setSuccess('');
-    setLoading(true);
 
     // Валидација
     if (!formData.name || !formData.email || !formData.password) {
       setError('Сва поља су обавезна');
-      setLoading(false);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Лозинке се не подударају');
-      setLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
       setError('Лозинка мора имати најмање 6 карактера');
-      setLoading(false);
       return;
     }
 
     try {
-      // Симулација регистрације
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const result = await register(
+        formData.email,
+        formData.password,
+        formData.name,
+        formData.bio || undefined,
+        formData.avatar || undefined
+      );
 
-      const newAuthor: UserType = {
-        id: Date.now().toString(),
-        email: formData.email,
-        name: formData.name,
-        role: 'author',
-        bio: formData.bio || 'Нови аутор на платформи',
-        joinedAt: new Date().toISOString(),
-        isActive: true,
-        avatar: formData.avatar || undefined,
-        registrationPassword: formData.password // Store the registration password
-      };
-
-      addNewAuthor(newAuthor);
-      setSuccess('Успешно сте се регистровали! Можете се сада пријавити.');
-      
-      // Очисти форму
-      setFormData({
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        bio: '',
-        avatar: ''
-      });
-      
-      // Пребаци на пријаву након 2 секунде
-      setTimeout(() => {
-        setIsLogin(true);
-        setSuccess('');
-      }, 2000);
-
+      if (result.success) {
+        setSuccess('Успешно сте се регистровали! Проверите е-пошту за потврду налога.');
+        
+        // Очисти форму
+        setFormData({
+          name: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          bio: '',
+          avatar: ''
+        });
+        
+        // Пребаци на пријаву након 3 секунде
+        setTimeout(() => {
+          setIsLogin(true);
+          setSuccess('');
+        }, 3000);
+      } else {
+        setError(result.error || 'Грешка при регистрацији. Покушајте поново.');
+      }
     } catch (err) {
       setError('Грешка при регистрацији. Покушајте поново.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -229,7 +217,14 @@ const AuthorRegistration: React.FC<AuthorRegistrationProps> = ({ onBack, onLogin
                     : 'bg-amber-800 hover:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500'
                 } transition-colors`}
               >
-                {loading ? 'Пријављујем...' : 'Пријави се'}
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <Loader className="h-4 w-4 animate-spin" />
+                    <span>Пријављујем...</span>
+                  </div>
+                ) : (
+                  'Пријави се'
+                )}
               </button>
             </form>
           ) : (
@@ -402,7 +397,14 @@ const AuthorRegistration: React.FC<AuthorRegistrationProps> = ({ onBack, onLogin
                     : 'bg-amber-800 hover:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500'
                 } transition-colors`}
               >
-                {loading ? 'Региструјем...' : 'Региструј се'}
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <Loader className="h-4 w-4 animate-spin" />
+                    <span>Региструјем...</span>
+                  </div>
+                ) : (
+                  'Региструј се'
+                )}
               </button>
             </form>
           )}
@@ -426,17 +428,13 @@ const AuthorRegistration: React.FC<AuthorRegistrationProps> = ({ onBack, onLogin
             </div>
           )}
 
-          {/* Demo Info */}
+          {/* Demo Info for Login */}
           {isLogin && (
             <div className="mt-6 p-4 bg-amber-50 rounded-md">
-              <h4 className="text-sm font-medium text-amber-900 mb-2">Демо налози за тестирање:</h4>
-              <div className="text-xs text-amber-800 space-y-1">
-                <p><strong>Супер админ:</strong> djoricnenad@gmail.com</p>
-                <p><strong>Уредник:</strong> marko.petrovic@example.com</p>
-                <p><strong>Аутор:</strong> ana.jovanovic@example.com</p>
-                <p><strong>Аутор:</strong> neschkonesic@gmail.com</p>
-                <p><strong>Лозинка за остале:</strong> admin123</p>
-              </div>
+              <h4 className="text-sm font-medium text-amber-900 mb-2">Напомена:</h4>
+              <p className="text-xs text-amber-800">
+                Сада користимо Supabase за аутентификацију. Потребно је да се региструјете или користите постојећи налог.
+              </p>
             </div>
           )}
         </div>

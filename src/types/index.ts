@@ -7,7 +7,6 @@ export interface User {
   bio?: string;
   joinedAt: string;
   isActive: boolean;
-  registrationPassword?: string; // For newly registered users
 }
 
 export interface BlogPost {
@@ -40,8 +39,10 @@ export interface Category {
 export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
+  register: (email: string, password: string, name: string, bio?: string, avatar?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
+  loading: boolean;
   canEdit: (postId: string) => boolean;
   canModerate: () => boolean;
   canAdmin: () => boolean;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Lock, AlertCircle } from 'lucide-react';
+import { User, Lock, AlertCircle, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface LoginProps {
@@ -10,13 +10,16 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+
+    if (!email || !password) {
+      setError('Сва поља су обавезна');
+      return;
+    }
 
     try {
       const success = await login(email, password);
@@ -27,8 +30,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       }
     } catch (err) {
       setError('Грешка при пријављивању. Покушајте поново.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -108,19 +109,22 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                   : 'bg-amber-800 hover:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500'
               } transition-colors`}
             >
-              {loading ? 'Пријављујем...' : 'Пријави се'}
+              {loading ? (
+                <div className="flex items-center space-x-2">
+                  <Loader className="h-4 w-4 animate-spin" />
+                  <span>Пријављујем...</span>
+                </div>
+              ) : (
+                'Пријави се'
+              )}
             </button>
           </div>
 
           <div className="mt-4 p-4 bg-blue-50 rounded-md">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">Демо налози за тестирање:</h4>
-            <div className="text-xs text-blue-800 space-y-1">
-              <p><strong>Супер админ:</strong> djoricnenad@gmail.com</p>
-              <p><strong>Уредник:</strong> marko.petrovic@example.com</p>
-              <p><strong>Аутор:</strong> ana.jovanovic@example.com</p>
-              <p><strong>Аутор:</strong> neschkonesic@gmail.com</p>
-              <p><strong>Лозинка за остале:</strong> admin123</p>
-            </div>
+            <h4 className="text-sm font-medium text-blue-900 mb-2">Напомена:</h4>
+            <p className="text-xs text-blue-800">
+              Сада користимо Supabase за аутентификацију. Потребно је да се региструјете преко регистрационе форме.
+            </p>
           </div>
         </form>
       </div>

@@ -11,7 +11,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, loading } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
 
   const handleLogout = () => {
@@ -145,9 +145,14 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             ) : (
               <button
                 onClick={() => onNavigate('login')}
-                className="bg-amber-800 hover:bg-amber-900 text-amber-50 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                disabled={loading}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  loading 
+                    ? 'bg-gray-400 text-gray-300 cursor-not-allowed' 
+                    : 'bg-amber-800 hover:bg-amber-900 text-amber-50'
+                }`}
               >
-                Пријави се
+                {loading ? 'Учитавам...' : 'Пријави се'}
               </button>
             )}
 
