@@ -1,0 +1,6 @@
+# Netlify redirects for SPA
+/*    /index.html   200
+
+# Facebook crawler specific redirects for better Open Graph support
+/post/*   /index.html   200
+/#post-*  /index.html   200
