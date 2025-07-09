@@ -54,6 +54,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('currentUser', JSON.stringify(foundUser));
       return true;
     }
+    // Check for newly registered users - they use their registration password
+    else if (foundUser && foundUser.registrationPassword && password === foundUser.registrationPassword) {
+      console.log('Newly registered user login successful');
+      setUser(foundUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('currentUser', JSON.stringify(foundUser));
+      return true;
+    }
     // Check for other users with default password
     else if (foundUser && password === 'admin123') {
       console.log('Regular user login successful');

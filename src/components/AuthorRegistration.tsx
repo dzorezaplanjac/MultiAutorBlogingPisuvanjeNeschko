@@ -88,7 +88,8 @@ const AuthorRegistration: React.FC<AuthorRegistrationProps> = ({ onBack, onLogin
         bio: formData.bio || 'Нови аутор на платформи',
         joinedAt: new Date().toISOString(),
         isActive: true,
-        avatar: formData.avatar || undefined
+        avatar: formData.avatar || undefined,
+        registrationPassword: formData.password // Store the registration password
       };
 
       addNewAuthor(newAuthor);

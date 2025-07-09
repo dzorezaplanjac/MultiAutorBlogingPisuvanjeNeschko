@@ -7,6 +7,7 @@ export interface User {
   bio?: string;
   joinedAt: string;
   isActive: boolean;
+  registrationPassword?: string; // For newly registered users
 }
 
 export interface BlogPost {
